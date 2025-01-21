@@ -1,0 +1,3 @@
+Thách: Nhảy 1 điệu nhảy trong vòng 30s
+Thật: Kể tên tất cả người yêu cũ của bạn
+Thách: Kể 1 người mà bạn đang thích hoặc đang yêu hiện tại
