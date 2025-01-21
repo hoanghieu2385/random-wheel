@@ -106,22 +106,36 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
 }
 
 // Function: Spin the wheel
+// Function: Spin the wheel
 function spinWheel() {
     const spinDuration = getSpinDuration();
     const spinAngle = Math.random() * 360 + 720; // Random angle + multiple rotations
-    const endTime = Date.now() + spinDuration;
+    const startTime = Date.now();
+    const endTime = startTime + spinDuration;
 
-    spinSound.play(); // Play spin sound
+    spinSound.loop = true; // Lặp âm thanh
+    spinSound.play(); // Bắt đầu âm thanh quay
+
+    function easeOutQuad(t) {
+        return t * (2 - t); // Hàm easing để làm chậm tốc độ
+    }
 
     function animate() {
         const now = Date.now();
-        if (now >= endTime) {
+        const elapsed = now - startTime;
+
+        if (elapsed >= spinDuration) {
             clearTimeout(spinTimeout);
-            displayResult();
+            spinSound.pause(); // Dừng âm thanh khi quay xong
+            spinSound.currentTime = 0; // Reset âm thanh
+            displayResult(); // Hiển thị kết quả
             return;
         }
 
-        currentAngle += spinAngle / spinDuration;
+        // Tính toán tốc độ giảm dần
+        const progress = elapsed / spinDuration;
+        const easedProgress = easeOutQuad(progress);
+        currentAngle += (spinAngle * (1 - easedProgress)) / spinDuration;
         currentAngle %= 2 * Math.PI;
 
         drawWheel();
@@ -151,7 +165,7 @@ function displayResult() {
     const selectedIdx = Math.floor((currentAngle / (2 * Math.PI)) * questions.length) % questions.length;
     currentQuestion = questions[selectedIdx];
     const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
-    document.getElementById('resultText').innerText = `Kết quả: ${currentQuestion}`;
+    document.getElementById('resultText').innerText = `${currentQuestion}`;
     resultModal.show();
 }
 
