@@ -106,15 +106,17 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
 }
 
 // Function: Spin the wheel
-// Function: Spin the wheel
 function spinWheel() {
     const spinDuration = getSpinDuration();
     const spinAngle = Math.random() * 360 + 720; // Random angle + multiple rotations
     const startTime = Date.now();
     const endTime = startTime + spinDuration;
 
-    spinSound.loop = true; // Lặp âm thanh
-    spinSound.play(); // Bắt đầu âm thanh quay
+    const soundEnabled = document.getElementById('toggleSoundCheckbox').checked;
+    if (soundEnabled) {
+        spinSound.loop = true; // Lặp âm thanh
+        spinSound.play(); // Bắt đầu âm thanh quay
+    }
 
     function easeOutQuad(t) {
         return t * (2 - t); // Hàm easing để làm chậm tốc độ
@@ -126,8 +128,10 @@ function spinWheel() {
 
         if (elapsed >= spinDuration) {
             clearTimeout(spinTimeout);
-            spinSound.pause(); // Dừng âm thanh khi quay xong
-            spinSound.currentTime = 0; // Reset âm thanh
+            if (soundEnabled) {
+                spinSound.pause(); // Dừng âm thanh khi quay xong
+                spinSound.currentTime = 0; // Reset âm thanh
+            }
             displayResult(); // Hiển thị kết quả
             return;
         }
@@ -159,8 +163,10 @@ function getSpinDuration() {
 
 // Function: Display result
 function displayResult() {
-    spinSound.pause(); // Stop spin sound
-    resultSound.play(); // Play result sound
+    const soundEnabled = document.getElementById('toggleSoundCheckbox').checked;
+    if (soundEnabled) {
+        resultSound.play(); // Play result sound nếu âm thanh được bật
+    }
 
     const selectedIdx = Math.floor((currentAngle / (2 * Math.PI)) * questions.length) % questions.length;
     currentQuestion = questions[selectedIdx];
