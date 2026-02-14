@@ -15,10 +15,39 @@ let questions = [...DEFAULT_QUESTIONS];
 let currentAngle = 0;
 let spinTimeout = null;
 let currentQuestion = null;
+let isSpinning = false; // Track spinning state
 
 // Load sound effects
 const spinSound = new Audio('./assets/sounds/spin.mp3');
 const resultSound = new Audio('./assets/sounds/result.mp3');
+
+// ===== LOCALSTORAGE FUNCTIONS =====
+// Load questions from localStorage
+function loadQuestionsFromStorage() {
+  try {
+    const savedQuestions = localStorage.getItem('wheelQuestions');
+    if (savedQuestions) {
+      const parsed = JSON.parse(savedQuestions);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        questions = parsed;
+        questionInput.value = questions.join('\n');
+        return true;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading questions from localStorage:', error);
+  }
+  return false;
+}
+
+// Save questions to localStorage
+function saveQuestionsToStorage() {
+  try {
+    localStorage.setItem('wheelQuestions', JSON.stringify(questions));
+  } catch (error) {
+    console.error('Error saving questions to localStorage:', error);
+  }
+}
 
 // Function: Draw the wheel
 function drawWheel() {
@@ -34,6 +63,11 @@ function drawWheel() {
   gradient.addColorStop(1, '#d1e7dd');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Apply gray filter if spinning
+  if (isSpinning) {
+    ctx.globalAlpha = 0.7;
+  }
 
   // Draw each segment
   questions.forEach((question, i) => {
@@ -59,6 +93,9 @@ function drawWheel() {
     ctx.restore();
   });
 
+  // Reset alpha
+  ctx.globalAlpha = 1.0;
+
   // Add center circle
   ctx.beginPath();
   ctx.arc(radius, radius, radius / 8, 0, 2 * Math.PI);
@@ -70,9 +107,9 @@ function drawWheel() {
   ctx.save();
   ctx.translate(radius, radius);
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = isSpinning ? '#999' : '#000';
   ctx.font = 'bold 18px Arial';
-  ctx.fillText('SPIN', 0, 5);
+  ctx.fillText(isSpinning ? 'WAIT...' : 'SPIN', 0, 5);
   ctx.restore();
 
   // Add pointer
@@ -83,6 +120,9 @@ function drawWheel() {
   ctx.closePath();
   ctx.fillStyle = '#FF0000';
   ctx.fill();
+
+  // Update cursor style
+  canvas.style.cursor = isSpinning ? 'not-allowed' : 'pointer';
 }
 
 // Function: Wrap text for long questions
@@ -107,6 +147,21 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
 
 // Function: Spin the wheel
 function spinWheel() {
+  // Prevent spinning if already spinning
+  if (isSpinning) {
+    return;
+  }
+
+  // Check if there are questions
+  if (questions.length === 0) {
+    alert('Vui lòng nhập câu hỏi trước khi quay!');
+    return;
+  }
+
+  // Set spinning state
+  isSpinning = true;
+  drawWheel(); // Redraw to show disabled state
+
   const spinDuration = getSpinDuration();
   const spinAngle = Math.random() * 360 + 720; // Random angle + multiple rotations
   const startTime = Date.now();
@@ -132,6 +187,7 @@ function spinWheel() {
         spinSound.pause(); // Dừng âm thanh khi quay xong
         spinSound.currentTime = 0; // Reset âm thanh
       }
+      isSpinning = false; // Reset spinning state
       displayResult(); // Hiển thị kết quả
       return;
     }
@@ -189,6 +245,9 @@ document.getElementById('removeQuestionBtn').addEventListener('click', () => {
     // Update the textarea input
     questionInput.value = questions.join('\n');
 
+    // Save to localStorage
+    saveQuestionsToStorage();
+
     // Re-initialize the wheel
     initializeWheel();
 
@@ -209,11 +268,21 @@ function autoUpdateQuestions() {
     }
   });
   questionInput.addEventListener('blur', updateQuestions);
+
+  // Auto-save every 2 seconds when typing
+  let saveTimeout;
+  questionInput.addEventListener('input', () => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      updateQuestions();
+    }, 2000); // Save after 2 seconds of no typing
+  });
 }
 
 function updateQuestions() {
   const inputQuestions = questionInput.value.split('\n').filter(Boolean); // Split by newlines and filter empty lines
   questions = inputQuestions.length > 0 ? inputQuestions : [...DEFAULT_QUESTIONS]; // Use input if available, otherwise defaults
+  saveQuestionsToStorage(); // Save to localStorage
   initializeWheel();
 }
 
@@ -270,13 +339,18 @@ function initializeWheel() {
 // Event listeners
 shuffleBtn.addEventListener('click', () => {
   questions = questions.sort(() => Math.random() - 0.5);
+  questionInput.value = questions.join('\n');
+  saveQuestionsToStorage(); // Save to localStorage
   initializeWheel();
 });
 
 clearAllBtn.addEventListener('click', () => {
-  questionInput.value = '';
-  questions = [...DEFAULT_QUESTIONS];
-  initializeWheel();
+  if (confirm('Bạn có chắc muốn xóa tất cả câu hỏi?')) {
+    questionInput.value = '';
+    questions = [...DEFAULT_QUESTIONS];
+    localStorage.removeItem('wheelQuestions'); // Clear localStorage
+    initializeWheel();
+  }
 });
 
 canvas.addEventListener('click', spinWheel);
@@ -295,6 +369,13 @@ suggestionButtons.forEach((button) =>
 );
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Load questions from localStorage first
+  const loaded = loadQuestionsFromStorage();
+  if (!loaded) {
+    // If no saved questions, use defaults
+    questions = [...DEFAULT_QUESTIONS];
+  }
+
   autoUpdateQuestions();
   initializeWheel();
 });

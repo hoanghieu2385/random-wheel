@@ -6,6 +6,16 @@
     border-radius: 50%;
     background: linear-gradient(135deg, #ffdd93, #fc60a8);
     position: relative;
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.1s ease;
+}
+
+.my-app-wheel canvas:hover:not([style*="not-allowed"]) {
+    transform: scale(1.02);
+}
+
+.my-app-wheel canvas:active:not([style*="not-allowed"]) {
+    transform: scale(0.98);
 }
 
 .my-app-wheel canvas:before {
