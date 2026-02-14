@@ -78,3 +78,55 @@
     height: 180px; /* Increase height for better visibility */
     resize: none; /* Optional: Disable resizing if necessary */
 }
+
+/* ===== RESULT TEXT LARGE STYLING ===== */
+/* Style cho text kết quả - font to để dễ nhìn từ xa */
+.result-text-large {
+    font-size: 3rem; /* 48px - rất to */
+    font-weight: bold;
+    color: #2c3e50;
+    line-height: 1.4;
+    padding: 30px 20px;
+    margin: 0;
+    word-wrap: break-word;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal dialog lớn hơn để chứa text to */
+#resultModal .modal-dialog {
+    max-width: 800px;
+}
+
+/* Modal body có padding phù hợp */
+#resultModal .modal-body {
+    padding: 40px 30px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal title cũng to hơn */
+#resultModal .modal-title {
+    font-size: 1.75rem;
+    font-weight: bold;
+}
+
+/* Responsive - điều chỉnh cho màn hình nhỏ */
+@media (max-width: 768px) {
+    .result-text-large {
+        font-size: 2rem; /* 32px cho mobile */
+        padding: 20px 15px;
+    }
+    
+    #resultModal .modal-dialog {
+        max-width: 95%;
+    }
+}
+
+@media (min-width: 1200px) {
+    /* Cho màn hình lớn, có thể tăng thêm */
+    .result-text-large {
+        font-size: 3.5rem; /* 56px */
+    }
+}
